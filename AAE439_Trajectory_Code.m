@@ -2,8 +2,8 @@ clear; clc; close all;
 
 v_w = input('Input the wind velocity in (m/s):\n');
 v_para = 0.5;
-psi_o = deg2rad(75);
-dt = 0.001;
+psi_o = deg2rad(80);
+dt = 0.01;
 
 disp('INITIALIZED');
 
