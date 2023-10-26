@@ -2,23 +2,23 @@ function [V,Theta,X,H,Index] = computeTrajectory(psi_o,v_w,dt)
 %%
 %Start by computing the trajctory caused by the burn
     %define constants
-    t_burn = 3.45;
+    t_burn = getThrust(-1,0);
     mp = 0.06;
     m_dot = mp/t_burn;
-    m_o = 0.9;
+    m_i = 0.9;
+    m_o = m_i + mp;
     Isp = 84.28; 
     S = pi*0.0508^2;
     tspan = 0:dt:t_burn;
     Index = [];
     
     %Use numerical integrator to solve for velocity, theta, and position
-    opts = odeset('RelTol',1e-5,'AbsTol',1e-5);
-    [~,y] = ode45(@(t,y) getDerivative(t,y,v_w,Isp,m_o,m_dot,...
-        S,dt),tspan, [0,psi_o,0,0,psi_o],opts);
+    opts = odeset('RelTol',1e-4,'AbsTol',1e-4);
+    [~,y] = ode45(@(t,y) getEOM_Burn_or_Coast(t,y,v_w,...
+        S,dt,1),tspan, [0,psi_o,0,0,psi_o,m_o],opts);
     
     %Add the computed state data to arrays for storage
     v = y(:,1);
-    disp(y(end,1));
     theta = y(:,2);
     x = y(:,3);
     h = y(:,4);
@@ -34,14 +34,14 @@ function [V,Theta,X,H,Index] = computeTrajectory(psi_o,v_w,dt)
     x_o = x(end);
     h_o = h(end);
     psi_o = psi(end);
-    t_lag = 3;
+    t_lag = 7;
     tspan = 0:dt:t_lag;
     
     y=0;
     t=0;
     %Use numerical integrator to solve for velocity, theta, and position
-    [t,y] = ode45(@(time,y) getDerivative(t,y,v_w,0,m_o-mp,...
-        0,S,dt),tspan, [v_o,theta_o,x_o,h_o,psi_o],opts);
+    [t,y] = ode45(@(time,y) getEOM_Burn_or_Coast(t,y,v_w,...
+                  S,dt,2),tspan, [v_o,theta_o,x_o,h_o,psi_o,m_i],opts);
     
     %Add the computed state data to arrays for storage
     v = [v; y(:,1)];
@@ -63,11 +63,11 @@ function [V,Theta,X,H,Index] = computeTrajectory(psi_o,v_w,dt)
     v_para = -0.5; %found with experimental data
     t_f = -h_o/v_para;
     tspan = 0:dt:t_f;
-    
+
     y=0;
     t=0;
     %Use numerical integrator to solve for velocity, theta, and position
-    [~,y] = ode45(@(t,y) getParaDerivative(t,y,m_o,v_w,v_para),...
+    [~,y] = ode45(@(t,y) getEOM_Return(t,y,m_i,v_w,v_para),...
         tspan, [x_o,h_o],opts);
     
     %Add the computed state data to arrays for storage
