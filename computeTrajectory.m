@@ -19,66 +19,51 @@ function [V,Theta,X,H,Index] = computeTrajectory(psi_o,v_w,dt)
         S,dt,1),tspan, [0,psi_o,0,0,psi_o,m_o],opts);
     
     %Add the computed state data to arrays for storage
-    v = y(:,1);
-    theta = y(:,2);
-    x = y(:,3);
-    h = y(:,4);
-    psi = y(:,5);
-    Index = [Index; length(x)];
+    V = y(:,1);
+    Theta = y(:,2);
+    X = y(:,3);
+    H = y(:,4);
+    Psi = y(:,5);
+    Index = [Index; length(X)];
 
 %%
 %Now compute the trajectory after the burn and before the parachute
 %deploys
     %define constants
-    v_o = v(end);
-    theta_o = theta(end);
-    x_o = x(end);
-    h_o = h(end);
-    psi_o = psi(end);
     t_lag = 7;
     tspan = 0:dt:t_lag;
     
-    y=0;
-    t=0;
+
     %Use numerical integrator to solve for velocity, theta, and position
-    [t,y] = ode45(@(time,y) getEOM_Burn_or_Coast(t,y,v_w,...
-                  S,dt,2),tspan, [v_o,theta_o,x_o,h_o,psi_o,m_i],opts);
+    [~,y] = ode45(@(t,y) getEOM_Burn_or_Coast(t,y,v_w,...
+                  S,dt,2),tspan, y(end,:) ,opts);
     
     %Add the computed state data to arrays for storage
-    v = [v; y(:,1)];
-    theta = [theta; y(:,2)];
-    x = [x; y(:,3)];
-    h = [h; y(:,4)];
-    psi = [psi; y(:,5)];
-    Index = [Index; length(x)];
+    V = [V; y(:,1)];
+    Theta = [Theta; y(:,2)];
+    X = [X; y(:,3)];
+    H = [H; y(:,4)];
+    Psi = [Psi; y(:,5)];
+    Index = [Index; length(X)];
 
 %%
 %Finally, compute the return trajectory after the parachute has been
 %deployed.
     %define constants
-    v_o = v(end);
-    theta_o = theta(end);
-    x_o = x(end);
-    h_o = h(end);
-    psi_o = psi(end);
-    v_para = -0.5; %found with experimental data
-    t_f = -h_o/v_para;
-    tspan = 0:dt:t_f;
+    Vx_o = V(end)*cos(Theta(end));
+    Vy_o = V(end)*sin(Theta(end));
+    x_o = X(end);
+    h_o = H(end);
+    tspan = [0,10000];
 
-    y=0;
-    t=0;
     %Use numerical integrator to solve for velocity, theta, and position
-    [~,y] = ode45(@(t,y) getEOM_Return(t,y,m_i,v_w,v_para),...
-        tspan, [x_o,h_o],opts);
+    opts = odeset('RelTol',1e-7,'AbsTol',1e-7,'Events',@touchdownEvent);
+    [~,y] = ode45(@(t,y) tester(t,y,v_w,m_i,S),...
+        tspan, [Vx_o,Vy_o,x_o,h_o],opts);
     
     %Add the computed state data to arrays for storage
-    x = [x; y(:,1)];
-    h = [h; y(:,2)];
-    
-    V = v;
-    Theta = theta;
-    X = x;
-    H = h;
-    Index = [Index; length(x)];
+    X = [X; y(:,3)];
+    H = [H; y(:,4)];
+    Index = [Index; length(X)];
 
 end

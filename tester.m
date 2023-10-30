@@ -1,18 +1,26 @@
-close all;
+function F = tester(t,y,V_w,m,S)
+    Vx = y(1);
+    Vy = y(2);
+    x = y(3);
+    h = y(4);
 
-thrust = importdata('Group4.mat');
-dt = 1/2000;
+    rho = getRho(h);
+    g = getGravity(h);
+    A_para = pi*0.4572^2;
+    Cd_para = 2.2;
 
-shift = mean(thrust(7600:end));
+    theta = atan2(Vy,Vx);
 
-thrust = thrust(2960:7500) - shift;
-thrust = thrust*4.4482;
-t = 0:dt:((length(thrust)-1)*dt);
+    Cdx = getCoeffDrag(abs(theta));
+    Dx = 0.5*rho*S*Cdx*(-1*sign(Vx)*Vx^2 - V_w^2);
+    Dy = -0.5*rho*A_para*Cd_para*sign(Vy)*Vy^2;
 
-thrust2 = csaps(t,thrust,0.99995,t);
+    dx_dt = Vx;
+    dh_dt = Vy;
+    
+    dVx_dt = (Dx/m);
+    dVy_dt = (Dy/m) - g;
 
-thrust3 = interp1(t,thrust2,0);
+    F = [dVx_dt;dVy_dt;dx_dt;dh_dt];
 
-plot(t,thrust);
-hold on;
-plot(t,thrust2);
+end
