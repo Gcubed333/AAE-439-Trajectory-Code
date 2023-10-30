@@ -1,14 +1,14 @@
 clear; clc; close all;
 
-v_w = input('Input the wind velocity in (m/s):\n');
+v_w = -0.5; %input('Input the wind velocity in (m/s):\n');
 v_para = 0.5;
-psi_o = deg2rad(88);
+psi_o = deg2rad(70);
 dt = 0.01;
 
 disp('INITIALIZED');
 
 disp('SOLVING FOR A PERFECT RETURN');
-opts = optimoptions('lsqnonlin','FunctionTolerance',1e-3);  
+opts = optimoptions('lsqnonlin','FunctionTolerance',1e-4);  
 psi_o = lsqnonlin(@(psi) perfectReturn(psi, v_w, dt), psi_o,0,pi/2,opts);
 
 disp('COMPUTING FINAL TRAJECTORY');
@@ -34,5 +34,4 @@ function X_f = perfectReturn(psi_o,v_w,dt)
     [~, ~, X, ~] = computeTrajectory(psi_o,v_w,dt);
 
     X_f = X(end);
-    disp(X(end));
 end

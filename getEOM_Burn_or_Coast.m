@@ -29,15 +29,15 @@ function dy_dt = getEOM_Burn_or_Coast(t,y,V_w,S,dt,state)
     psi = psi_o;
     if t ~= 0
         opts= optimoptions('fsolve','Display','none',...
-            'Algorithm','levenberg-marquardt','FunctionTolerance',1e-05);
+            'Algorithm','levenberg-marquardt','FunctionTolerance',1e-09);
         psi = fsolve(@(psi) solvePsi(psi,theta,T,L,D,g*m),psi_o,opts);
     end
     dpsi_dt = (psi - psi_o)/dt;
 
-    dv_dt = (T/m)*cos(psi-theta) - (D/m) - g*sin(theta);
-    
-    
-    dtheta_dt = (T/(m*(V-V_w)))*sin(psi-theta) + L/(m*(V-V_w)) - (g/(V-V_w))*cos(theta);
+    dv_dt = (T/m)*cos(psi-theta) - (D/m) - g*sin(theta);  
+
+    V_rel = V + V_w*cos(theta);
+    dtheta_dt = (T/(m*V_rel))*sin(psi-theta) + L/(m*V_rel) - (g/V_rel)*cos(theta);
 
     dm_dt = -m_dot;
 

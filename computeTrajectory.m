@@ -9,11 +9,12 @@ function [V,Theta,X,H,Index] = computeTrajectory(psi_o,v_w,dt)
     m_o = m_i + mp;
     Isp = 84.28; 
     S = pi*0.0508^2;
-    tspan = 0:dt:t_burn;
+    %tspan = 0:dt:t_burn;
+    tspan = [0,t_burn];
     Index = [];
     
     %Use numerical integrator to solve for velocity, theta, and position
-    opts = odeset('RelTol',1e-4,'AbsTol',1e-4);
+    opts = odeset('RelTol',1e-7,'AbsTol',1e-7);
     [~,y] = ode45(@(t,y) getEOM_Burn_or_Coast(t,y,v_w,...
         S,dt,1),tspan, [0,psi_o,0,0,psi_o,m_o],opts);
     
