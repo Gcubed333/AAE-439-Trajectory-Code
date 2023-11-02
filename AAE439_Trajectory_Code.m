@@ -1,6 +1,7 @@
 clear; clc; close all;
+global tol;
 
-v_w = -3; %input('Input the wind velocity in (m/s):\n');
+v_w = -1; %input('Input the wind velocity in (m/s):\n');
 v_para = 0.5;
 psi_o = 1.2; %deg2rad(70);
 dt = 0.01;
@@ -8,7 +9,8 @@ dt = 0.01;
 disp('INITIALIZED');
 
 disp('SOLVING FOR A PERFECT RETURN');
-opts = optimoptions('lsqnonlin','FunctionTolerance',1e-2);  
+tol= 1e-2;
+opts = optimoptions('lsqnonlin','FunctionTolerance',tol);  
 psi_o = lsqnonlin(@(psi) perfectReturn(psi, v_w, dt), psi_o,0,pi/2,opts);
 
 disp('COMPUTING FINAL TRAJECTORY');
@@ -31,7 +33,9 @@ fprintf('Your initial Psi should be %0.3f degrees from horizontal.\n',...
 
 
 function X_f = perfectReturn(psi_o,v_w,dt)
+    global tol;
     [~, ~, X, ~] = computeTrajectory(psi_o,v_w,dt);
 
     X_f = X(end);
+    fprintf('Converging Progress: %0.3f %% \n',(tol/X_f)*100);
 end

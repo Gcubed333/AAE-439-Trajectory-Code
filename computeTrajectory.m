@@ -30,7 +30,7 @@ function [V,Theta,X,H,Index] = computeTrajectory(psi_o,v_w,dt)
 %Now compute the trajectory after the burn and before the parachute
 %deploys
     %define constants
-    t_lag = 7;
+    t_lag = 4;
     tspan = 0:dt:t_lag;
     
 
@@ -58,7 +58,7 @@ function [V,Theta,X,H,Index] = computeTrajectory(psi_o,v_w,dt)
 
     %Use numerical integrator to solve for velocity, theta, and position
     opts = odeset('RelTol',1e-7,'AbsTol',1e-7,'Events',@touchdownEvent);
-    [~,y] = ode45(@(t,y) tester(t,y,v_w,m_i,S),...
+    [~,y] = ode45(@(t,y) getEOM_Return(t,y,v_w,m_i),...
         tspan, [Vx_o,Vy_o,x_o,h_o],opts);
     
     %Add the computed state data to arrays for storage
